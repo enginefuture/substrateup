@@ -48,6 +48,46 @@ pub type OwnerAllKitties<T: Config> = StorageMap<_, Blake2_128Concat, T::Account
 		type KittyStake: Get<BalanceOf<Self>>;
         
     }
+
+    ...
+     #[pallet::weight(10_100)]
+        pub fn breed(origin: OriginFor<T>, kitty_id_1:T::KittyIndex, kitty_id_2: T::KittyIndex) -> DispatchResult {
+            let who = ensure_signed(origin)?;
+
+            //check kitty_id
+            ensure!(kitty_id_1 != kitty_id_2, Error::<T>::SameKittyId);
+            T::Currency::reserve(&who, T::KittyReserve::get()).map_err(|_| Error::<T>::TokenNotEnough)?;
+            let kitty_1 = Self::get_kitty(kitty_id_1).map_err(|_| Error::<T>::InvalidKittyId)?;
+            let kitty_2 = Self::get_kitty(kitty_id_2).map_err(|_| Error::<T>::InvalidKittyId)?;
+
+            // get next id
+            let kitty_id = Self::get_next_id().map_err(|_| Error::<T>::InvalidKittyId)?;
+
+            //selector for breeding
+            let selector = Self::random_value(&who);
+
+            let mut data = [0u8; 16];
+            for i in 0..kitty_1.0.len() {
+                //0 choose kitty2, and 1 chosse kitty1
+                data[i] = (kitty_1.0[i] & selector[i]) | (kitty_2.0[i] & !selector[i]);
+            }
+
+            let new_kitty = Kitty(data);
+
+            <Kitties<T>>::insert(kitty_id, &new_kitty);
+            KittyOwner::<T>::insert(kitty_id, &who);
+            NextKittyId::<T>::put(kitty_id + 1u32.into());
+
+            OwnerAllKitties::<T>::try_mutate(&who, |kitties_i_vec| {
+				kitties_i_vec.try_push(new_kitty.clone())
+			}).map_err(|_| Error::<T>::OverMaxOwnerKitties)?;
+
+
+            Self::deposit_event(Event::KittyCreated(who, kitty_id, new_kitty));
+            Ok(())
+        }
+
+
 ```
 ## 5.pod js 运行
 ![image](https://github.com/enginefuture/substrateup/blob/main/class2/2.png)
