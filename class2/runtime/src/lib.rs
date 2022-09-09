@@ -280,6 +280,7 @@ impl pallet_kitties::Config for Runtime {
 	type KittyIndex = u32;
 	type KittyReserve = KittyReserve;
 	type Currency = Balances;
+	type MaxLength = ConstU32<64>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.

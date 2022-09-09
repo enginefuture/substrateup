@@ -37,7 +37,7 @@ pub mod pallet {
     ///定义kitty存储，valuequery，或者optionquery
     #[pallet::storage]
     #[pallet::getter(fn next_kitty_id)]
-    pub type NextKittyId<T:Config> = StorageValue<_,T::KittyIndex>;
+    pub type NextKittyId<T:Config> = StorageValue<_,T::KittyIndex, ValueQuery>;
 
 
     ///blake2做hash映射
@@ -181,16 +181,13 @@ pub mod pallet {
         }
 
         //get next id
-        fn get_next_id() -> Result<T::KittyIndex, ()> {
-            //next_kitty_id由上面宏自动生成
-            match Self::next_kitty_id() {
-                Some(val) => {
-					ensure!(val != T::KittyIndex::max_value(), Err(Error::<T>::KittiesOverflow.into()));
-					Ok(val)
-				}
-				None => Ok(1u32.into()),
-            }
-        }
+        fn get_next_id() -> Result<T::KittyIndex, DispatchError> {
+			let kitty_id = Self::next_kitty_id();
+			if kitty_id == T::KittyIndex::max_value() {
+				return Err(Error::<T>::OverMaxOwnerKitties.into());
+			}
+			Ok(kitty_id)
+		}
 
         //get kitty via id
         fn get_kitty(kitty_id: T::KittyIndex) -> Result<Kitty, ()> {
