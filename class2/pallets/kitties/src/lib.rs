@@ -29,7 +29,6 @@ pub mod pallet {
         type KittyIndex: Copy + Default + Bounded + AtLeast32BitUnsigned + Parameter + MaxEncodedLen;
         type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 		type KittyReserve: Get<BalanceOf<Self>>;
-        
     }
 
     #[pallet::pallet]
@@ -73,7 +72,7 @@ pub mod pallet {
         SameKittyId,
         KittiesOverflow,
         OverMaxOwnerKitties,
-        StakeNotEnough,
+        TokenNotEnough,
     }
     ///创建kitty
     #[pallet::call]
@@ -83,7 +82,7 @@ pub mod pallet {
             let who = ensure_signed(origin)?;
             let kitty_id = Self::get_next_id().map_err(|_| Error::<T>::InvalidKittyId)?;
 
-            T::Currency::reserve(&who, T::KittyReserve::get()).map_err(|_| Error::<T>::StakeNotEnough)?;
+            T::Currency::reserve(&who, T::KittyReserve::get()).map_err(|_| Error::<T>::TokenNotEnough)?;
 
             let dna = Self::random_value(&who);
             let kitty = Kitty(dna);
@@ -107,7 +106,7 @@ pub mod pallet {
 
             //check kitty_id
             ensure!(kitty_id_1 != kitty_id_2, Error::<T>::SameKittyId);
-            T::Currency::reserve(&who, T::KittyReserve::get()).map_err(|_| Error::<T>::StakeNotEnough)?;
+            T::Currency::reserve(&who, T::KittyReserve::get()).map_err(|_| Error::<T>::TokenNotEnough)?;
             let kitty_1 = Self::get_kitty(kitty_id_1).map_err(|_| Error::<T>::InvalidKittyId)?;
             let kitty_2 = Self::get_kitty(kitty_id_2).map_err(|_| Error::<T>::InvalidKittyId)?;
 
@@ -144,7 +143,7 @@ pub mod pallet {
             let now_kitty = Self::get_kitty(kitty_id).map_err(|_| Error::<T>::InvalidKittyId)?;
             ensure!(Self::kitty_owner(kitty_id) == Some(who.clone()), Error::<T>::NotOwner);
 
-            T::Currency::reserve(&who, T::KittyReserve::get()).map_err(|_| Error::<T>::StakeNotEnough)?;
+            T::Currency::reserve(&who, T::KittyReserve::get()).map_err(|_| Error::<T>::TokenNotEnough)?;
 
             OwnerAllKitties::<T>::try_mutate(&who, |kitties_i_vec| {
 				if let Some(index) = kitties_i_vec.iter().position(|kitties_i| kitties_i == &kitty_id) {
