@@ -93,3 +93,5 @@ pub type OwnerAllKitties<T: Config> = StorageMap<_, Blake2_128Concat, T::Account
 ![image](https://github.com/enginefuture/substrateup/blob/main/class2/2.png)
 ![image](https://github.com/enginefuture/substrateup/blob/main/class2/3.png)
 ![image](https://github.com/enginefuture/substrateup/blob/main/class2/4.png)
+![image](https://github.com/enginefuture/substrateup/blob/main/class2/5.png)
+![image](https://github.com/enginefuture/substrateup/blob/main/class2/6.png)
