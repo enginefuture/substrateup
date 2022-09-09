@@ -145,7 +145,7 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 42;
 
 	///kitty state
-	pub const KittyStake: u128 = 1;
+	pub const KittyReserve: u128 = 1;
 }
 
 // Configure FRAME pallets to include in runtime.
@@ -278,7 +278,7 @@ impl pallet_kitties::Config for Runtime {
 	type Event = Event;
 	type Randomness = RandomnessCollectiveFlip;
 	type KittyIndex = u32;
-	type KittyStake = KittyStake;
+	type KittyReserve = KittyReserve;
 	type Currency = Balances;
 }
 
