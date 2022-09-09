@@ -21,3 +21,9 @@ impl pallet_kitties::Config for Runtime {
 
 ```
 
+## 3.扩展存储，能得到一个账号拥有的所有kitties
+```rust
+#[pallet::storage]
+#[pallet::getter(fn owner_all_kitties)]
+pub type OwnerAllKitties<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, BoundedVec<T::KittyIndex,ConstU32<256>>, ValueQuery>;
+```

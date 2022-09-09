@@ -3,7 +3,7 @@ pub use pallet::*;
 
 #[frame_support::pallet]
 pub mod pallet {
-    use frame_support::pallet_prelude::*;
+    use frame_support::pallet_prelude::{*, ValueQuery};
     use frame_system::pallet_prelude::*;
     use frame_support::traits::Randomness;
     use sp_io::hashing::blake2_128;
@@ -48,6 +48,10 @@ pub mod pallet {
     #[pallet::storage]
     #[pallet::getter(fn kitty_owner)]
     pub type KittyOwner<T: Config> = StorageMap<_, Blake2_128Concat, T::KittyIndex, T::AccountId>;
+
+    #[pallet::storage]
+    #[pallet::getter(fn owner_all_kitties)]
+    pub type OwnerAllKitties<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, BoundedVec<T::KittyIndex,ConstU32<256>>, ValueQuery>;
 
 
     #[pallet::event]
