@@ -27,3 +27,29 @@ impl pallet_kitties::Config for Runtime {
 #[pallet::getter(fn owner_all_kitties)]
 pub type OwnerAllKitties<T: Config> = StorageMap<_, Blake2_128Concat, T::AccountId, BoundedVec<T::KittyIndex,ConstU32<256>>, ValueQuery>;
 ```
+## 4.create和breed需要质押一定数量的token，在transfer的时候能转移质押。
+```rust
+ type BalanceOf<T> = <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+
+    // #[pallet::type_value]
+    // pub fn GetDefaultValue() -> T::KittyIndex {
+    //     0_u32
+    // }
+
+    #[derive(Encode, Decode, Clone, PartialEq, Eq, Debug, TypeInfo, MaxEncodedLen)]
+    pub struct Kitty(pub [u8; 16]);
+
+    #[pallet::config]
+    pub trait Config: frame_system::Config {
+        type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+        type Randomness: Randomness<Self::Hash, Self::BlockNumber>;
+        type KittyIndex: Copy + Default + Bounded + AtLeast32BitUnsigned + Parameter + MaxEncodedLen;
+        type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+		type KittyStake: Get<BalanceOf<Self>>;
+        
+    }
+```
+## 5.pod js 运行
+![image](https://github.com/enginefuture/substrateup/blob/main/class2/2.png)
+![image](https://github.com/enginefuture/substrateup/blob/main/class2/3.png)
+![image](https://github.com/enginefuture/substrateup/blob/main/class2/4.png)
