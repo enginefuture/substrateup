@@ -1,6 +1,13 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 pub use pallet::*;
 
+
+#[cfg(test)]
+mod mock;
+
+#[cfg(test)]
+mod tests;
+
 #[frame_support::pallet]
 pub mod pallet {
     use frame_support::pallet_prelude::*;
@@ -26,7 +33,9 @@ pub mod pallet {
         type Randomness: Randomness<Self::Hash, Self::BlockNumber>;
         type KittyIndex: Copy + Default + Bounded + AtLeast32BitUnsigned + Parameter + MaxEncodedLen + Member;
         type Currency: Currency<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+        #[pallet::constant]
 		type KittyReserve: Get<BalanceOf<Self>>;
+        #[pallet::constant]
         type MaxLength: Get<u32>;
     }
 
@@ -66,11 +75,17 @@ pub mod pallet {
 
     #[pallet::error]
     pub enum Error<T> {
+        ///无效kittyID
         InvalidKittyId,
+        ///不是kitty拥有者
         NotOwner,
+        ///相同kittyID
         SameKittyId,
+        ///kitty数量溢出
         KittiesOverflow,
+        ///超出最大拥有kitty数量
         OverMaxOwnerKitties,
+        ///token不够
         TokenNotEnough,
     }
     ///创建kitty
@@ -138,11 +153,16 @@ pub mod pallet {
 
         #[pallet::weight(10_000)]
         pub fn transfer(origin: OriginFor<T>, kitty_id: T::KittyIndex, new_owner: T::AccountId) -> DispatchResult {
+            // 获取当前账户操作者
             let who = ensure_signed(origin)?;
+            // 检查kitty_id是否有效
             let now_kitty = Self::get_kitty(kitty_id).map_err(|_| Error::<T>::InvalidKittyId)?;
+            // 检查kitty拥有者
             ensure!(Self::kitty_owner(kitty_id) == Some(who.clone()), Error::<T>::NotOwner);
 
-            T::Currency::reserve(&who, T::KittyReserve::get()).map_err(|_| Error::<T>::TokenNotEnough)?;
+            let reserve_number = T::KittyReserve::get();
+
+            T::Currency::reserve(&new_owner, reserve_number).map_err(|_| Error::<T>::TokenNotEnough)?;
 
             OwnerAllKitties::<T>::try_mutate(&who, |kitties_i_vec| {
 				if let Some(index) = kitties_i_vec.iter().position(|kitties| kitties == &now_kitty) {
@@ -152,9 +172,9 @@ pub mod pallet {
 				Err(())
 			}).map_err(|_| Error::<T>::NotOwner)?;
             
-            T::Currency::unreserve(&who, T::KittyReserve::get());
+            T::Currency::unreserve(&who, reserve_number);
 
-            <KittyOwner<T>>::insert(kitty_id, &new_owner);
+            <KittyOwner<T>>::insert(&kitty_id, &new_owner);
 
             OwnerAllKitties::<T>::try_mutate(&new_owner, |kitties_i_vec| {
 				kitties_i_vec.try_push(now_kitty)
